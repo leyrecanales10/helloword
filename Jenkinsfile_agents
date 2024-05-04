@@ -1,0 +1,129 @@
+pipeline {
+    agent none
+
+    stages {
+        stage('Get Code') {
+			agent any
+            steps {
+                //Obtener codigo del repositorio
+                git 'https://github.com/leyrecanales10/helloword.git'
+				echo WORKSPACE
+				bat 'whoami'
+				bat 'hostname'
+				
+				stash name: 'repositorio', includes: 'app/*, test/**'
+				
+
+            }
+        }
+        
+        stage('Build') {
+			agent any
+            steps{
+                echo 'Eyyy, esto es Python. No hay que compilar nada!!!'
+                echo WORKSPACE
+				bat 'whoami'
+				bat 'hostname'
+  
+            }
+        }
+        
+		stage('Tests'){
+			parallel{
+				stage('Unit'){
+				    agent { label 'windows' }
+					steps{
+						catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+							unstash 'repositorio'
+							bat '''
+								set PYTHONPATH=%WORKSPACE%
+								C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/pytest.exe --junitxml=result-unit.xml test/unit
+							'''
+							
+							echo WORKSPACE
+							bat 'whoami'
+				            bat 'hostname'
+
+                            stash name: 'pruebas', includes: 'app/*, test/**'
+                            
+						}
+					}
+				}
+               
+				stage('Rest') {
+                    agent { label 'windows' }
+					steps {
+						catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+							unstash 'repositorio'
+							bat '''
+								set FLASK_APP=app/api.py
+								start C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/flask.exe run
+								start java -jar C:/Users/leyre/Dropbox/MasterDevops/CasoPractico1/Wiremock/wiremock-standalone-3.5.4.jar --port 9090  --root-dir test/Wiremock
+							'''
+							echo "Iniciando sleep"
+							sleep time: 30
+							echo "¡Sleep completado!"
+                   
+							retry(3){
+							bat '''
+								SET PYTHONPATH=%WORKSPACE%
+								C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/pytest.exe --junitxml=result-rest.xml test/rest
+							'''
+							}
+							
+							echo WORKSPACE
+							bat 'whoami'
+				            bat 'hostname'
+				            
+				            stash name: 'pruebas', includes: 'app/*, test/**'
+                            
+                   
+						}
+                
+					}
+				}
+			}
+        }
+        
+       
+        stage('Result'){
+		    agent { label 'windows' }
+            steps{
+				unstash 'pruebas'
+				echo WORKSPACE
+				bat 'whoami'
+				bat 'hostname'
+                junit 'result*.xml'
+                echo 'FINISH!!'
+                
+            }
+        }
+        
+        stage('Limpieza agente principal'){
+		    agent any
+            steps{
+				deleteDir()
+                
+            }
+        }
+        
+        stage('Limpieza agente secundario 1'){
+		    agent { label 'agente2' }
+            steps{
+				deleteDir()
+                
+            }
+        }
+        
+        stage('Limpieza agente agente secundario 2'){
+		    agent { label 'agente3' }
+            steps{
+				deleteDir()
+                
+            }
+        }
+       
+       
+    }
+    
+}
