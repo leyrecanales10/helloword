@@ -1,11 +1,14 @@
 pipeline {
     agent any
-    
+    options {
+        skipDefaultCheckout(true) // Evita que Jenkins realice un checkout por defecto
+    }
+	
     stages {
         stage('Get Code') {
             steps {
                 //Obtener codigo del repositorio
-               git 'https://github.com/leyrecanales10/helloword.git'
+               checkout([$class: 'GitSCM', branches: [[name: '*/develop']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/leyrecanales10/helloword.git']]])
                 
             }
         }
