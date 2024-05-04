@@ -16,6 +16,7 @@ pipeline {
         stage('Build') {
             steps{
                 echo 'Eyyy, esto es Python. No hay que compilar nada!!!'
+		echo 'Es una mini prueba'
                 echo WORKSPACE
                 bat 'dir'
             }
