@@ -1,11 +1,12 @@
 pipeline {
     agent any
-
+    
     stages {
         stage('Get Code') {
             steps {
                 //Obtener codigo del repositorio
-                git 'https://github.com/leyrecanales10/helloword.git'
+               git 'https://github.com/leyrecanales10/helloword.git'
+                
             }
         }
         
