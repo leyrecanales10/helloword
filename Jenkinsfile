@@ -1,11 +1,15 @@
 pipeline {
     agent any
-
+    options {
+        skipDefaultCheckout(true) // Evita que Jenkins realice un checkout por defecto
+    }
+	
     stages {
         stage('Get Code') {
             steps {
                 //Obtener codigo del repositorio
-                git 'https://github.com/leyrecanales10/helloword.git'
+               checkout([$class: 'GitSCM', branches: [[name: '*/develop']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/leyrecanales10/helloword.git']]])
+                
             }
         }
         
@@ -38,16 +42,12 @@ pipeline {
 								start C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/flask.exe run
 								start java -jar C:/Users/leyre/Dropbox/MasterDevops/CasoPractico1/Wiremock/wiremock-standalone-3.5.4.jar --port 9090  --root-dir test/Wiremock
 							'''
-							echo "Iniciando sleep"
-							sleep time: 30
-							echo "¡Sleep completado!"
-                   
-							retry(3){
+							
 							bat '''
 								SET PYTHONPATH=%WORKSPACE%
 								C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/pytest.exe --junitxml=result-rest.xml test/rest
 							'''
-							}
+							
                    
 						}
                 
@@ -63,3 +63,4 @@ pipeline {
         }
     }
 }
+
