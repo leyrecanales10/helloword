@@ -44,7 +44,7 @@ pipeline {
 							bat 'whoami'
 				            bat 'hostname'
 
-                            stash name: 'pruebasunit', includes: 'app/*, test/**'
+                            stash name: 'repositorio', includes: 'app/*, test/**'
                             
 						}
 					}
@@ -75,7 +75,7 @@ pipeline {
 							bat 'whoami'
 				            bat 'hostname'
 				            
-				            stash name: 'pruebasrest', includes: 'app/*, test/**'
+				            stash name: 'repositorio', includes: 'app/*, test/**'
                             
                    
 						}
@@ -89,8 +89,7 @@ pipeline {
         stage('Result'){
 		    agent { label 'windows' }
             steps{
-				unstash 'pruebasunit'
-				unstash 'pruebasrest'
+				unstash 'repositorio'
 				echo WORKSPACE
 				bat 'whoami'
 				bat 'hostname'
