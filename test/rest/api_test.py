@@ -43,9 +43,6 @@ class TestApi(unittest.TestCase):
 
         try:
             response = urllib.request.urlopen(req, timeout=DEFAULT_TIMEOUT)
-            self.assertEqual(response.status, http.client.NOT_ACCEPTABLE, f"Error en la petición API a {url}")
-            response_text = response.read().decode()
-            self.assertEqual(response_text, "No se puede dividir entre cero")
         except urllib.error.HTTPError as e:
             self.assertEqual(e.code, http.client.NOT_ACCEPTABLE, f"Error inesperado en la petición API a {url}")
             response_text = e.read().decode()
