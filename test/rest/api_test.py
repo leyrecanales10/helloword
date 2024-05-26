@@ -51,6 +51,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(
             response.status, http.client.NOT_ACCEPTABLE, f"Error en la petición API a {url}"
         )
+        self.assertEqual(response.read().decode(), "No se puede dividir entre cero")
 
     def test_api_multiply(self):
         url = f"{BASE_URL}/calc/multiply/2/2"
