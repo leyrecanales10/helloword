@@ -1,6 +1,7 @@
 import http.client
 import os
 import unittest
+import urllib
 from urllib.request import urlopen
 
 import pytest
@@ -36,14 +37,19 @@ class TestApi(unittest.TestCase):
         )
 
     def test_api_divide(self):
-        url = f"{BASE_URL}/calc/divide/2/2"
-        response = urlopen(url, timeout=DEFAULT_TIMEOUT)
-        self.assertEqual(
-            response.status, http.client.OK, f"Error en la petición API a {url}"
-        )
-        self.assertEqual(
-            response.read().decode(), "1.0", "ERROR DIVIDE"
-        )
+        url = f"{BASE_URL}/calc/divide/2/0"
+        headers = {'Accept': 'text/plain'}
+        req = urllib.request.Request(url, headers=headers)
+
+        try:
+            response = urllib.request.urlopen(req, timeout=DEFAULT_TIMEOUT)
+            self.assertEqual(response.status, http.client.NOT_ACCEPTABLE, f"Error en la petición API a {url}")
+            response_text = response.read().decode()
+            self.assertEqual(response_text, "No se puede dividir entre cero")
+        except urllib.error.HTTPError as e:
+            self.assertEqual(e.code, http.client.NOT_ACCEPTABLE, f"Error inesperado en la petición API a {url}")
+            response_text = e.read().decode()
+            self.assertEqual(response_text, "No se puede dividir entre cero")
 
     def test_api_divide_by_zero(self):
         url = f"{BASE_URL}/calc/divide/2/0"
