@@ -1,0 +1,81 @@
+pipeline {
+    agent any
+    stages {
+        stage('Get Code') {
+            steps {
+                //Obtener codigo del repositorio
+               git 'https://github.com/leyrecanales10/helloword.git'
+            }
+        }
+        stage('Pruebas de código estático'){
+            parallel{
+                stage('Static'){
+			        steps{
+			            bat '''
+					        set PYTHONPATH=%WORKSPACE%
+				    	    C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/flake8.exe --exit-zero --format=pylint app >flake8.out
+				        '''
+
+			        	recordIssues tools: [flake8(name: 'Flake8', pattern: 'flake8.out')], qualityGates: [[threshold: 8, type: 'TOTAL', unstable: true], [threshold: 10, type: 'TOTAL', unstable: false]]
+			        }
+		        }
+
+	    	    stage('Security Test'){
+			        steps{
+			            bat '''
+					        set PYTHONPATH=%WORKSPACE%
+
+					        C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/bandit.exe --exit-zero -r . -f custom -o bandit.out --severity-level medium --msg-template "{abspath}:{line}: {severity}: {test_id}: {msg}"
+				        '''
+				        recordIssues tools: [pyLint(name: 'Bandit', pattern: 'bandit.out')], qualityGates: [[threshold: 2, type: 'TOTAL', unstable: true], [threshold: 4, type: 'TOTAL', unstable: false]]
+			        }
+		        }
+
+            }
+
+        }
+
+		stage('Tests'){
+			parallel{
+				stage('Unit'){
+					steps{
+						catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+							bat '''
+								set PYTHONPATH=%WORKSPACE%
+								C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/pytest.exe --junitxml=result-unit.xml test/unit
+							'''
+
+							junit 'result-unit.xml'
+						}
+					}
+				}
+
+				stage('Rest') {
+					steps {
+						catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+							bat '''
+								set FLASK_APP=app/api.py
+								start C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/flask.exe run
+								start java -jar C:/Users/leyre/Dropbox/MasterDevops/CasoPractico1/Wiremock/wiremock-standalone-3.5.4.jar --port 9090  --root-dir test/Wiremock
+							'''
+
+							echo "Iniciando sleep"
+							sleep time: 15
+							echo "¡Sleep completado!"
+
+							retry(3){
+							bat '''
+								SET PYTHONPATH=%WORKSPACE%
+								C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/pytest.exe --junitxml=result-rest.xml test/rest
+							'''
+							}
+
+							junit 'result-rest.xml'
+						}
+
+					}
+				}
+			}
+        }
+    }
+}

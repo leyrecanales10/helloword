@@ -7,7 +7,7 @@ pipeline {
                git 'https://github.com/leyrecanales10/helloword.git'
             }
         }
-        
+
         stage('Build') {
             steps{
                 echo 'Eyyy, esto es Python. No hay que compilar nada!!!'
@@ -15,7 +15,7 @@ pipeline {
                 bat 'dir'
             }
         }
-        
+
 		stage('Tests'){
 			parallel{
 				stage('Unit'){
@@ -28,7 +28,7 @@ pipeline {
 						}
 					}
 				}
-        
+
 				stage('Rest') {
 					steps {
 						catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
@@ -37,15 +37,15 @@ pipeline {
 								start C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/flask.exe run
 								start java -jar C:/Users/leyre/Dropbox/MasterDevops/CasoPractico1/Wiremock/wiremock-standalone-3.5.4.jar --port 9090  --root-dir test/Wiremock
 							'''
-							
+
 							bat '''
 								SET PYTHONPATH=%WORKSPACE%
 								C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/pytest.exe --junitxml=result-rest.xml test/rest
 							'''
-							
-                   
+
+
 						}
-                
+
 					}
 				}
 			}
@@ -58,4 +58,3 @@ pipeline {
         }
     }
 }
-
