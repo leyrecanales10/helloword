@@ -7,7 +7,7 @@ pipeline {
                git 'https://github.com/leyrecanales10/helloword.git'
             }
         }
-        stage('Pruebas de código estático'){
+        stage('Pruebas no funcionales'){
             parallel{
                 stage('Static'){
 			        steps{
@@ -42,8 +42,9 @@ pipeline {
 						catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
 							bat '''
 								set PYTHONPATH=%WORKSPACE%
-								C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/pytest.exe --junitxml=result-unit.xml test/unit
-							'''
+								C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/coverage.exe run --branch --source=app --omit=app/__init__.py,app/api.py -m pytest --junitxml=result-unit.xml test/unit
+                                C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/coverage.exe xml -o coverage.xml
+                            '''
 
 							junit 'result-unit.xml'
 						}
@@ -63,12 +64,10 @@ pipeline {
 							sleep time: 15
 							echo "¡Sleep completado!"
 
-							retry(3){
 							bat '''
 								SET PYTHONPATH=%WORKSPACE%
 								C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/pytest.exe --junitxml=result-rest.xml test/rest
 							'''
-							}
 
 							junit 'result-rest.xml'
 						}
@@ -77,5 +76,35 @@ pipeline {
 				}
 			}
         }
+
+        stage('Coverage'){
+			steps{
+			    echo "El comando coverage ya se ha ejecutado en la etapa de unit test, aqui solo ejecutamos el plugin"
+
+			    catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+			        cobertura coberturaReportFile: 'coverage.xml', onlyStable: false, failUnstable: false, conditionalCoverageTargets: '100,80,90', lineCoverageTargets: '100,85,95'
+			    }
+			}
+		}
+
+		 stage('Performance'){
+			steps{
+			    bat '''
+					set FLASK_APP=app/api.py
+					start C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/flask.exe run
+				'''
+
+				echo "Iniciando sleep"
+				sleep time: 15
+				echo "¡Sleep completado!"
+
+				bat '''
+					C:/Users/leyre/Dropbox/MasterDevops/CasoPractico1/apache-jmeter-5.6.3/bin/jmeter -n -t C:/Users/leyre/Dropbox/MasterDevops/CasoPractico1/CP1-B/helloword/test/jmeter/P24.jmx -f -l P24.jtl
+
+				'''
+			    perfReport sourceDataFiles: 'P24.jtl'
+
+			}
+		}
     }
 }
