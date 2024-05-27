@@ -99,7 +99,7 @@ pipeline {
 				echo "¡Sleep completado!"
 
 				bat '''
-					C:/Users/leyre/Dropbox/MasterDevops/CasoPractico1/apache-jmeter-5.6.3/bin/jmeter -n -t C:/Users/leyre/Dropbox/MasterDevops/CasoPractico1/CP1-B/helloword/test/jmeter/flask.jmx -f -l P24.jtl
+					C:/Users/leyre/Dropbox/MasterDevops/CasoPractico1/apache-jmeter-5.6.3/bin/jmeter -n -t C:/Users/leyre/Dropbox/MasterDevops/CasoPractico1/CP1-B/helloword/test/jmeter/P24.jmx -f -l P24.jtl
 
 				'''
 			    perfReport sourceDataFiles: 'P24.jtl'
