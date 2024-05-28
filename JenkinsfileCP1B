@@ -27,7 +27,7 @@ pipeline {
 
 					        C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/bandit.exe --exit-zero -r . --format=custom --severity-level medium --msg-template="{relpath}:{line}: [{test_id}] {msg}" >bandit.out
 				        '''
-				        recordIssues tools: [flake8(name: 'Bandit', pattern: 'bandit.out')], qualityGates: [[threshold: 2, type: 'TOTAL', unstable: true], [threshold: 4, type: 'TOTAL', unstable: false]]
+				        recordIssues tools: [pylint(name: 'Bandit', pattern: 'bandit.out')], qualityGates: [[threshold: 2, type: 'TOTAL', unstable: true], [threshold: 4, type: 'TOTAL', unstable: false]]
 			        }
 		        }
 
