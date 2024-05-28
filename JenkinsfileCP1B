@@ -1,14 +1,14 @@
 pipeline {
     agent any
-        stages {
-            stage('Get Code') {
-                steps {
-                    //Obtener codigo del repositorio
+    stages {
+        stage('Get Code') {
+            steps {
+                //Obtener codigo del repositorio
                 git 'https://github.com/leyrecanales10/helloword.git'
-                }
             }
+        }
 
-        stage('Tests'){
+        stage('Pruebas no funcionales'){
             parallel{
                 stage('Static'){
 		            steps{
