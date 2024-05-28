@@ -23,9 +23,9 @@ pipeline {
 	        steps{
 			    bat '''
 			        set PYTHONPATH=%WORKSPACE%
-			        C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/bandit.exe --exit-zero -r . -f custom -o bandit.out --severity-level medium --msg-template "{abspath}:{line}: {severity}: {test_id}: {msg}"
+			        C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/bandit.exe --exit-zero -r . --format=custom --severity-level medium --msg-template="{relpath}:{line}: [{test_id}] {msg}" >bandit.out
 				'''
-				recordIssues tools: [pyLint(name: 'Bandit', pattern: 'bandit.out')], qualityGates: [[threshold: 2, type: 'TOTAL', unstable: true], [threshold: 4, type: 'TOTAL', unstable: false]]
+				recordIssues tools: [flake8(name: 'Bandit', pattern: 'bandit.out')], qualityGates: [[threshold: 2, type: 'TOTAL', unstable: true], [threshold: 4, type: 'TOTAL', unstable: false]]
 			}
 		}
 
