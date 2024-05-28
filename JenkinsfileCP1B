@@ -19,16 +19,6 @@ pipeline {
 			}
 		}
 
-	    stage('Security Test'){
-	        steps{
-			    bat '''
-			        set PYTHONPATH=%WORKSPACE%
-			        C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/bandit.exe --exit-zero -r . --format=custom --severity-level medium --msg-template="{relpath}:{line}: [{test_id}] {msg}" >bandit.out
-				'''
-				recordIssues tools: [flake8(name: 'Bandit', pattern: 'bandit.out')], qualityGates: [[threshold: 2, type: 'TOTAL', unstable: true], [threshold: 4, type: 'TOTAL', unstable: false]]
-			}
-		}
-
 		stage('Tests'){
 			parallel{
 				stage('Unit'){
@@ -78,6 +68,16 @@ pipeline {
 			    catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
 			        cobertura coberturaReportFile: 'coverage.xml', onlyStable: false, failUnstable: false, conditionalCoverageTargets: '100,80,90', lineCoverageTargets: '100,85,95'
 			    }
+			}
+		}
+
+		stage('Security Test'){
+	        steps{
+			    bat '''
+			        set PYTHONPATH=%WORKSPACE%
+			        C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/bandit.exe --exit-zero -r . --format=custom --severity-level medium --msg-template="{relpath}:{line}: [{test_id}] {msg}" >bandit.out
+				'''
+				recordIssues tools: [flake8(name: 'Bandit', pattern: 'bandit.out')], qualityGates: [[threshold: 2, type: 'TOTAL', unstable: true], [threshold: 4, type: 'TOTAL', unstable: false]]
 			}
 		}
 
