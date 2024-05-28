@@ -7,36 +7,27 @@ pipeline {
                git 'https://github.com/leyrecanales10/helloword.git'
             }
         }
-        stage('Pruebas no funcionales'){
-            parallel{
-                stage('Static'){
-			        steps{
-			            bat '''
-					        set PYTHONPATH=%WORKSPACE%
-				    	    C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/flake8.exe --exit-zero --format=pylint app >flake8.out
-				        '''
-  
-			        	recordIssues tools: [flake8(name: 'Flake8', pattern: 'flake8.out')], qualityGates: [[threshold: 8, type: 'TOTAL', unstable: true], [threshold: 10, type: 'TOTAL', unstable: false]]
 
-			        }
-		        }
+        stage('Static'){
+		    steps{
+			    bat '''
+			        set PYTHONPATH=%WORKSPACE%
+				    C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/flake8.exe --exit-zero --format=pylint app >flake8.out
+			    '''
 
-	    	    stage('Security Test'){
-			        steps{
-			            bat '''
-					        set PYTHONPATH=%WORKSPACE%
+			    recordIssues tools: [flake8(name: 'Flake8', pattern: 'flake8.out')], qualityGates: [[threshold: 8, type: 'TOTAL', unstable: true], [threshold: 10, type: 'TOTAL', unstable: false]]
+			}
+		}
 
-					        C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/bandit.exe --exit-zero -r . --format=custom --severity-level medium --msg-template="{relpath}:{line}: [{test_id}] {msg}" >bandit.out
-				        '''
-
-				        recordIssues tools: [flake8(name: 'Bandit', pattern: 'bandit.out')], qualityGates: [[threshold: 2, type: 'TOTAL', unstable: true], [threshold: 4, type: 'TOTAL', unstable: false]]
-
-			        }
-		        }
-
-            }
-
-        }
+	    stage('Security Test'){
+	        steps{
+			    bat '''
+			        set PYTHONPATH=%WORKSPACE%
+			        C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/bandit.exe --exit-zero -r . -f custom -o bandit.out --severity-level medium --msg-template "{abspath}:{line}: {severity}: {test_id}: {msg}"
+				'''
+				recordIssues tools: [pyLint(name: 'Bandit', pattern: 'bandit.out')], qualityGates: [[threshold: 2, type: 'TOTAL', unstable: true], [threshold: 4, type: 'TOTAL', unstable: false]]
+			}
+		}
 
 		stage('Tests'){
 			parallel{
@@ -93,20 +84,20 @@ pipeline {
 		 stage('Performance'){
 			steps{
 			    catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-			    bat '''
-					set FLASK_APP=app/api.py
-					start C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/flask.exe run
-				'''
+			        bat '''
+					    set FLASK_APP=app/api.py
+					    start C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/flask.exe run
+				    '''
 
-				echo "Iniciando sleep"
-				sleep time: 15
-				echo "¡Sleep completado!"
+				    echo "Iniciando sleep"
+				    sleep time: 15
+				    echo "¡Sleep completado!"
 
-				bat '''
-					C:/Users/leyre/Dropbox/MasterDevops/CasoPractico1/apache-jmeter-5.6.3/bin/jmeter -n -t C:/Users/leyre/Dropbox/MasterDevops/CasoPractico1/CP1-B/helloword/test/jmeter/P24.jmx -f -l P24.jtl
+				    bat '''
+					    C:/Users/leyre/Dropbox/MasterDevops/CasoPractico1/apache-jmeter-5.6.3/bin/jmeter -n -t C:/Users/leyre/Dropbox/MasterDevops/CasoPractico1/CP1-B/helloword/test/jmeter/P24.jmx -f -l P24.jtl
 
-				'''
-			    perfReport sourceDataFiles: 'P24.jtl'
+				    '''
+			        perfReport sourceDataFiles: 'P24.jtl'
                 }
 			}
 		}
