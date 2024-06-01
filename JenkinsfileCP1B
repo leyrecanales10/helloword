@@ -42,6 +42,7 @@ pipeline {
 								set PYTHONPATH=%WORKSPACE%
 								C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/coverage.exe run --branch --source=app --omit=app/__init__.py,app/api.py -m pytest --junitxml=result-unit.xml test/unit
                                 C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/coverage.exe xml -o coverage.xml
+                                C:/Users/leyre/AppData/Local/Programs/Python/Python311/Scripts/coverage report
                             '''
 
 							junit 'result-unit.xml'
